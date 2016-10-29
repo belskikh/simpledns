@@ -44,7 +44,7 @@ func handleRequest(w dns.ResponseWriter, r *dns.Msg) {
 		}
 	}
 
-  w.WriteMsg(m)
+	w.WriteMsg(m)
 }
 
 func main() {
