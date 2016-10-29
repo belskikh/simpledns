@@ -24,12 +24,13 @@ func init() {
 
 func serve(net string) {
 	server := &dns.Server{Addr: ":53", Net: net}
-
-	err := server.ListenAndServe()
 	defer server.Shutdown()
+	
+	err := server.ListenAndServe()
 
 	if err != nil {
-	log.Printf("Error - %s", err)
+		log.Printf("Error - %s", err)
+		return
 	}
 }
 
