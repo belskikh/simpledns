@@ -3,9 +3,22 @@ package main
 import (
 	"fmt"
 	"github.com/miekg/dns"
-	// "net"
-	// "reflect"
 )
+
+var records map[string]dns.RR = createRecords()
+
+func createRecords() map[string]dns.RR {
+	records := make(map[string]dns.RR)
+
+	rr, _ := dns.NewRR("8level.ru. 300 IN A 185.37.61.185")
+
+	records["8level.ru."] = rr
+
+	rr2, _ := dns.NewRR("panel.8level.ru. 300 IN A 185.37.61.185")
+	records["panel.8level.ru."] = rr2
+
+	return records
+}
 
 func serve() {
 	server := &dns.Server{Addr: ":53", Net: "udp"}
@@ -18,26 +31,19 @@ func serve() {
 	}
 }
 
-// func handleQuery(m *dns.Msg) {
-// 	var rr dns.RR
-
-// }
-
 func handleRequest(w dns.ResponseWriter, r *dns.Msg) {
-
-	records := make(map[string]dns.RR)
-
-	rr, _ := dns.NewRR("8level.ru. 300 IN A 185.37.61.185")
-
-	records["8level.ru."] = rr
-
-	rr2, _ := dns.NewRR("panel.8level.ru. 300 IN A 185.37.61.185")
-	records["panel.8level.ru."] = rr2
 
 	m := new(dns.Msg)
 	m.SetReply(r)
-	m.Answer = append(m.Answer, records["8level.ru."])
-	fmt.Println(records["8level.ru."])
+
+	for _, q := range r.Question {
+		for key, _ := range records {
+			if q.Name == key {
+				m.Answer = append(m.Answer, records[key])
+			}
+		}
+	}
+
 	w.WriteMsg(m)
 }
 
