@@ -1,33 +1,35 @@
-package main
+papackage main
 
 import (
-	"fmt"
+	"log"
+	"github.com/kirillDanshin/myutils"
 	"github.com/miekg/dns"
 )
 
-var records map[string]dns.RR = createRecords()
+// init sample storage to test server
+var records map[string]dns.RR
 
-func createRecords() map[string]dns.RR {
-	records := make(map[string]dns.RR)
+func init() {
+	records = make(map[string]dns.RR)
 
-	rr, _ := dns.NewRR("8level.ru. 300 IN A 185.37.61.185")
-
+	rr, err := dns.NewRR("8level.ru. 300 IN A 185.37.61.185")
+	myutils.LogFatalError(err)
 	records["8level.ru."] = rr
 
-	rr2, _ := dns.NewRR("panel.8level.ru. 300 IN A 185.37.61.185")
-	records["panel.8level.ru."] = rr2
+	rr, err = dns.NewRR("panel.8level.ru. 300 IN A 185.37.61.185")
+	myutils.LogFatalError(err)
 
-	return records
+	records["panel.8level.ru."] = rr
 }
 
-func serve() {
-	server := &dns.Server{Addr: ":53", Net: "udp"}
+func serve(net string) {
+	server := &dns.Server{Addr: ":53", Net: net}
 
 	err := server.ListenAndServe()
 	defer server.Shutdown()
 
 	if err != nil {
-		fmt.Printf("Error - %s", err)
+	log.Printf("Error - %s", err)
 	}
 }
 
@@ -37,23 +39,18 @@ func handleRequest(w dns.ResponseWriter, r *dns.Msg) {
 	m.SetReply(r)
 
 	for _, q := range r.Question {
-		for key, _ := range records {
-			if q.Name == key {
-				m.Answer = append(m.Answer, records[key])
-			}
+		if record, ok := records[q.Name]; ok {
+			m.Answer = append(m.Answer, record)
 		}
 	}
 
-	w.WriteMsg(m)
+  w.WriteMsg(m)
 }
 
 func main() {
-
-	// create and start server
 	dns.HandleFunc(".", handleRequest)
 
-	go serve()
-
-	var input string
-	fmt.Scanln(&input)
+	go serve("tcp")
+	// block
+	serve("udp")
 }
