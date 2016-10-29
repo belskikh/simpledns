@@ -12,6 +12,11 @@ func main() {
 	r.Hdr = dns.RR_Header{Name: "8level.ru.", Rrtype: dns.TypeA,
 		Class: dns.ClassINET, Ttl: 300}
 	r.A = net.IPv4(185, 37, 61, 185)
-	// testing value
+
+	// create a simple message
+	m := new(dns.Msg)
+	m.SetQuestion("8level.ru.", dns.TypeA)
+	// testing values
 	fmt.Println(r)
+	fmt.Println(m)
 }
