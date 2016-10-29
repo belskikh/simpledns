@@ -1,4 +1,4 @@
-papackage main
+package main
 
 import (
 	"log"
