@@ -1,9 +1,9 @@
 package main
 
 import (
-	"github.com/miekg/dns"
-	// "net"
 	"fmt"
+	"github.com/miekg/dns"
+	"net"
 )
 
 func handleRequest(w dns.ResponseWriter, r *dns.Msg) {
@@ -23,12 +23,12 @@ func main() {
 	m := new(dns.Msg)
 	m.SetQuestion("8level.ru.", dns.TypeA)
 
-	// creat and start server
+	// create and start server
 
 	server := &dns.Server{Addr: ":8080", Net: "udp"}
 
 	dns.HandleFunc(".", handleRequest)
-	// panic(server.ListenAndServe())
+
 	err := server.ListenAndServe()
 
 	if err != nil {
