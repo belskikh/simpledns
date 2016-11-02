@@ -61,15 +61,14 @@ func handleRequest(w dns.ResponseWriter, r *dns.Msg) {
 	m := new(dns.Msg)
 	m.SetReply(r)
 
-	// question looks like this {[...]}
-	for _, q := range r.Question {
-		if record, ok := records[q.Name]; ok {
+	q := r.Question[0]
+	if record, ok := records[q.Name]; ok {
+		m.Answer = append(m.Answer, record)
+	} else {
+		externalRecord := getExternalRecord(r) // type []dns.RR
+
+		for _, record := range externalRecord {
 			m.Answer = append(m.Answer, record)
-		} else {
-			externalRecord := getExternalRecord(r) // type []dns.RR
-			for _, record := range externalRecord {
-				m.Answer = append(m.Answer, record)
-			}
 		}
 	}
 
