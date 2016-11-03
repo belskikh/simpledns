@@ -37,7 +37,14 @@ func serve(net string) {
 func getExternalRecord(r *dns.Msg) []dns.RR {
 
 	// creating new message for sending to external server
+	if len(r.Question) == 0 {
+		log.Printf("DNS Message %s does not contain question", r)
+		// return empty answer
+		answer := make([]dns.RR, 0)
+		return answer
+	}
 	question := r.Question[0]
+
 	m := new(dns.Msg)
 	m.SetQuestion(question.Name, dns.TypeA)
 
@@ -50,7 +57,12 @@ func getExternalRecord(r *dns.Msg) []dns.RR {
 
 	// simple UDP request. comment if using dns.Client
 	in, err := dns.Exchange(m, servAdress)
-	myutils.LogFatalError(err)
+	if err != nil {
+		log.Printf("Error with getting answer from server %s: %s", servAdress, err)
+		// return empty answer
+		answer := make([]dns.RR, 0)
+		return answer
+	}
 
 	return in.Answer
 
@@ -60,8 +72,14 @@ func handleRequest(w dns.ResponseWriter, r *dns.Msg) {
 
 	m := new(dns.Msg)
 	m.SetReply(r)
+	var q dns.Question
 
-	q := r.Question[0]
+	if len(r.Question) == 0 {
+		log.Printf("DNS Message %s does not contain question", r)
+	} else {
+		q = r.Question[0]
+	}
+
 	if record, ok := records[q.Name]; ok {
 		m.Answer = append(m.Answer, record)
 	} else {
